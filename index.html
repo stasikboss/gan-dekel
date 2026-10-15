@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2f6b47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ועד גן דקל">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>ועד גן דקל</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Suez+One&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: one column app, palm-green header band, tabs, cards per event; money shown as ledger rows */
+:root{
+  --bg:#f4f6f1; --surface:#ffffff; --fg:#1d2a22; --muted:#5d6b61; --line:#dde4da;
+  --palm:#2f6b47; --palm-soft:#e3efe6; --date:#b5741c; --date-soft:#f7ead6;
+  --ok:#2f7d4a; --warn:#a8641a; --bad:#b03a32;
+  --display:"Suez One","Assistant",system-ui,sans-serif;
+  --body:"Assistant",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141a16; --surface:#1c241f; --fg:#e7eee8; --muted:#9aa89e; --line:#2d3830;
+  --palm:#7cc497; --palm-soft:#22352a; --date:#e0a957; --date-soft:#3a2d1a;
+  --ok:#7cc497; --warn:#e0a957; --bad:#ef8a80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a16; --surface:#1c241f; --fg:#e7eee8; --muted:#9aa89e; --line:#2d3830;
+  --palm:#7cc497; --palm-soft:#22352a; --date:#e0a957; --date-soft:#3a2d1a;
+  --ok:#7cc497; --warn:#e0a957; --bad:#ef8a80; color-scheme:dark}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;direction:rtl}
+.wrap{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{background:var(--palm);color:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) header{background:var(--palm-soft);color:var(--fg)}}
+:root[data-theme="dark"] header{background:var(--palm-soft);color:var(--fg)}
+header .wrap{padding-block:22px 18px;display:flex;align-items:center;gap:14px}
+header h1{font-family:var(--display);font-weight:400;font-size:1.9rem;margin:0;line-height:1.1;text-wrap:balance}
+header p{margin:2px 0 0;opacity:.85;font-size:.95rem}
+.palm{width:44px;height:44px;flex:none}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:4px;overflow-x:auto}
+nav button{font:inherit;font-weight:600;background:none;border:0;color:var(--muted);padding:12px 14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--palm);border-bottom-color:var(--palm)}
+main .wrap{padding-block:20px 48px;display:flex;flex-direction:column;gap:22px}
+h2{font-family:var(--display);font-weight:400;font-size:1.35rem;margin:0}
+.sub{color:var(--muted);font-size:.92rem;margin:2px 0 0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.role h3{margin:0;font-size:1.15rem}
+.role .who{font-family:var(--display);font-size:1.4rem;color:var(--palm)}
+.role ul{margin:6px 0 0;padding-inline-start:18px;color:var(--muted)}
+.stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.stat .k{font-size:.8rem;color:var(--muted);letter-spacing:.02em}
+.stat .v{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.stat.hl{background:var(--date-soft);border-color:transparent}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--palm)}
+.ev{display:flex;flex-direction:column;gap:10px}
+.ev-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:space-between}
+.ev-title{font-weight:700;font-size:1.1rem}
+.chip{display:inline-block;font-size:.78rem;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--palm-soft);color:var(--palm)}
+.chip.gift{background:var(--date-soft);color:var(--date)}
+.st-todo{color:var(--bad)}.st-doing{color:var(--warn)}.st-done{color:var(--ok)}
+.slots{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:3px;min-width:0}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+textarea{min-height:60px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--palm);outline-offset:1px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:9px 16px;background:var(--palm);color:#fff;cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#10201a}}
+:root[data-theme="dark"] .btn{color:#10201a}
+.btn.ghost{background:none;color:var(--muted);border:1px solid var(--line);font-weight:600;padding:6px 10px}
+.btn.small{padding:6px 12px;font-size:.9rem}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.row>label{flex:1 1 150px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.8rem;color:var(--muted);font-weight:600}
+.tbl{overflow-x:auto}
+.paid{color:var(--ok);font-weight:700}.unpaid{color:var(--bad);font-weight:700}
+.kids{display:flex;flex-wrap:wrap;gap:8px}
+.kid{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 6px 4px 12px;background:var(--surface);cursor:pointer;font:inherit;color:var(--fg)}
+.kid.on{background:var(--palm-soft);border-color:var(--palm)}
+.kid .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line)}
+.kid.on .dot{background:var(--palm);border-color:var(--palm)}
+.empty{color:var(--muted);text-align:center;padding:18px;border:1px dashed var(--line);border-radius:10px}
+.notice{background:var(--date-soft);color:var(--fg);border-radius:10px;padding:12px 14px}
+.x{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:2px 6px}
+.section{display:flex;flex-direction:column;gap:12px}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:8px 16px;border-radius:8px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <svg class="palm" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M24 44V20"/><path d="M24 20c-4-6-12-7-18-4"/><path d="M24 20c4-6 12-7 18-4"/><path d="M24 20c-2-7-8-12-14-12"/><path d="M24 20c2-7 8-12 14-12"/><path d="M24 20c0-6 1-11 4-15"/></g><g fill="currentColor"><circle cx="21" cy="23" r="2"/><circle cx="26" cy="24" r="2"/><circle cx="23.5" cy="27" r="2"/></g></svg>
+  <div style="flex:1;min-width:0"><h1>ועד גן דקל</h1><p>גיוס מול ההורים · שקיפות מלאה · חלוקה ברורה בין חברי הוועד</p></div>
+  <button id="signout" class="btn ghost small" type="button" hidden style="color:inherit;border-color:currentColor">יציאה</button>
+</div></header>
+
+<nav><div class="wrap" role="tablist">
+  <button role="tab" id="t-home" data-tab="home" aria-selected="true">סקירה</button>
+  <button role="tab" id="t-events" data-tab="events" aria-selected="false">מתנות ומסיבות</button>
+  <button role="tab" id="t-money" data-tab="money" aria-selected="false">תקציב וגבייה</button>
+  <button role="tab" id="t-buy" data-tab="buy" aria-selected="false">רכש והחזרים</button>
+</div></nav>
+
+<main><div class="wrap">
+  <div id="status" class="notice">טוען את נתוני הוועד…</div>
+  <div id="login" class="card section" hidden style="text-align:center;align-items:center">
+    <h2>כניסה לחברי הוועד</h2>
+    <p class="sub">הכניסה עם חשבון Google. רק כתובות שאושרו מראש יכולות לראות ולערוך.</p>
+    <button id="signin" class="btn" type="button">כניסה עם Google</button>
+  </div>
+
+  <section id="p-home" class="section">
+    <div><h2>מי אחראי על מה</h2><p class="sub">חלוקת האחריות שסוכמה בישיבת הוועד הראשונה</p></div>
+    <div class="grid" id="roles"></div>
+    <div><h2>מצב הקופה</h2></div>
+    <div class="stats" id="home-stats"></div>
+    <div><h2>הבא בתור</h2></div>
+    <div id="home-next" class="section"></div>
+  </section>
+
+  <section id="p-events" class="section" hidden>
+    <div><h2>מתנות ומסיבות</h2><p class="sub">מתנות באחריות דסי · ארוחות במסיבות באחריות נילי (3 הורים לכל מסיבה, לפי הרשימה של ברכי)</p></div>
+    <div id="events-list" class="section"></div>
+    <form class="card section" id="f-event">
+      <strong>הוספת אירוע</strong>
+      <div class="row">
+        <label for="ev-title">שם האירוע<input id="ev-title" required placeholder="למשל: מסיבת חנוכה"></label>
+        <label for="ev-when">מתי<input id="ev-when" placeholder="למשל: דצמבר 2026"></label>
+        <label for="ev-type">סוג<select id="ev-type"><option value="gift">מתנה</option><option value="party">מסיבה עם ארוחה</option></select></label>
+        <button class="btn" type="submit">הוספה</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="p-money" class="section" hidden>
+    <div><h2>תקציב וגבייה</h2><p class="sub">כל ההורים רואים את אותם מספרים בזמן אמת</p></div>
+    <div class="stats" id="money-stats"></div>
+    <div class="card section">
+      <div class="row">
+        <label for="s-kids">מספר ילדים בגן<input id="s-kids" type="number" min="0" inputmode="numeric"></label>
+        <label for="s-per">סכום לילד לשנה (₪)<input id="s-per" type="number" min="0" inputmode="numeric"></label>
+        <label for="s-paybox">קישור לקבוצת PayBox<input id="s-paybox" placeholder="הדביקו כאן את הקישור"></label>
+      </div>
+      <div id="paybox-link"></div>
+    </div>
+    <div class="section">
+      <div><h2>מי שילם</h2><p class="sub">לחיצה על שם מסמנת ששולם. הוסיפו את שמות הילדים מרשימת הגן.</p></div>
+      <div class="kids" id="kids"></div>
+      <form class="row" id="f-kid">
+        <label for="kid-name">שם הילד/ה<input id="kid-name" required placeholder="שם פרטי ומשפחה"></label>
+        <button class="btn" type="submit">הוספה</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="p-buy" class="section" hidden>
+    <div><h2>רכש והחזרים</h2><p class="sub">ברכי קונה לגן ושולחת לנו קבלה, ואנחנו מחזירים לה ב-PayBox</p></div>
+    <div class="stats" id="buy-stats"></div>
+    <form class="card section" id="f-exp">
+      <strong>רישום קנייה</strong>
+      <div class="row">
+        <label for="x-desc">מה נקנה<input id="x-desc" required placeholder="למשל: חומרי יצירה לחנוכה"></label>
+        <label for="x-amt">סכום (₪)<input id="x-amt" type="number" step="0.01" min="0" required inputmode="decimal"></label>
+        <label for="x-buyer">מי קנה<input id="x-buyer" value="ברכי"></label>
+        <label for="x-date">תאריך<input id="x-date" type="date"></label>
+        <button class="btn" type="submit">רישום</button>
+      </div>
+    </form>
+    <div class="card tbl"><table>
+      <thead><tr><th>תאריך</th><th>מה</th><th>מי קנה</th><th>סכום</th><th>הוחזר?</th><th></th></tr></thead>
+      <tbody id="exp-body"></tbody>
+    </table></div>
+  </section>
+</div></main>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ils=n=>"₪"+(Math.round((+n||0)*100)/100).toLocaleString("he-IL");
+const S={settings:{kids:18,perChild:0,paybox:"",roles:[]},events:[],kids:[],exp:[],loaded:{s:0,e:0,k:0,x:0}};
+let db=null, canWrite=true;
+const STATUS={todo:"עוד לא התחלנו",doing:"בטיפול",done:"בוצע"};
+
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove("show"),1600)}
+function fail(e){console.error(e);if(e&&(e.code==="invalid_argument"||e.code==="permission-denied")){canWrite=false;render();toast("אין הרשאת עריכה")}else toast("השמירה נכשלה, נסו שוב")}
+
+/* tabs */
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+function showTab(t){document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===t));
+  ["home","events","money","buy"].forEach(p=>$("#p-"+p).hidden=p!==t);
+  try{localStorage.setItem("dekel-tab",t)}catch(e){}}
+try{const t=localStorage.getItem("dekel-tab");if(t)showTab(t)}catch(e){}
+if(["events","money","buy"].includes(location.hash.slice(1)))showTab(location.hash.slice(1));
+
+function totals(){
+  const kids=+S.settings.kids||0, per=+S.settings.perChild||0;
+  const paid=S.kids.filter(k=>k.paid).length;
+  const target=kids*per, collected=paid*per;
+  const spent=S.exp.reduce((a,x)=>a+(+x.amount||0),0);
+  const owed=S.exp.filter(x=>!x.reimbursed).reduce((a,x)=>a+(+x.amount||0),0);
+  return {kids,per,paid,target,collected,spent,owed,balance:collected-spent};
+}
+const stat=(k,v,hl)=>`<div class="stat${hl?" hl":""}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+
+function render(){
+  const T=totals(), dis=canWrite?"":" disabled";
+  const ready=S.loaded.s&&S.loaded.e&&S.loaded.k&&S.loaded.x;
+  if(db&&ready) $("#status").hidden=true;
+
+  /* roles */
+  const roles=S.settings.roles||[];
+  $("#roles").innerHTML=roles.length?roles.map(r=>`<div class="card role"><div class="who">${esc(r.name)}</div><h3>${esc(r.area)}</h3><ul>${(r.items||[]).map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div>`).join("")
+    :`<div class="empty">חלוקת האחריות תופיע כאן</div>`;
+
+  const pct=T.target?Math.min(100,Math.round(T.collected/T.target*100)):0;
+  const moneyStats=stat("ילדים בגן",T.kids)+stat("שילמו",`${T.paid} / ${T.kids}`)+stat("נאסף",ils(T.collected))+stat("יעד גבייה",T.per?ils(T.target):"טרם נקבע")+stat("הוצאות",ils(T.spent))+stat("יתרה בקופה",ils(T.balance),1);
+  $("#home-stats").innerHTML=moneyStats;
+  $("#money-stats").innerHTML=moneyStats+`<div class="stat" style="grid-column:1/-1"><div class="k">התקדמות הגבייה · ${pct}%</div><div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div></div>`;
+  $("#buy-stats").innerHTML=stat("סה״כ קניות",ils(T.spent))+stat("מחכה להחזר",ils(T.owed),1)+stat("הוחזר",ils(T.spent-T.owed));
+
+  /* next up */
+  const open=S.events.filter(e=>e.status!=="done");
+  $("#home-next").innerHTML=open.length?open.slice(0,3).map(e=>`<div class="card ev-head"><div><span class="ev-title">${esc(e.title)}</span> <span class="sub">· ${esc(e.when||"")}</span></div><span class="chip${e.type==="gift"?" gift":""}">${e.type==="gift"?"מתנה · "+esc(e.owner||"דסי"):"ארוחה · "+esc(e.owner||"נילי")}</span><span class="st-${e.status||"todo"}">${STATUS[e.status||"todo"]}</span></div>`).join("")
+    :`<div class="empty">אין משימות פתוחות כרגע</div>`;
+
+  /* events — keep focused inputs intact */
+  if(!$("#events-list").contains(document.activeElement)){
+    $("#events-list").innerHTML=S.events.length?S.events.map(e=>{
+      const slots=(e.slots&&e.slots.length?e.slots:["","",""]);
+      return `<div class="card ev" data-id="${esc(e.id)}">
+        <div class="ev-head"><div><span class="ev-title">${esc(e.title)}</span> <span class="sub">· ${esc(e.when||"")}</span></div>
+          <span class="chip${e.type==="gift"?" gift":""}">${e.type==="gift"?"מתנה":"מסיבה + ארוחה"}</span></div>
+        <div class="row">
+          <label for="o-${esc(e.id)}">אחראית<input id="o-${esc(e.id)}" data-f="owner" value="${esc(e.owner||"")}"${dis}></label>
+          <label for="st-${esc(e.id)}">סטטוס<select id="st-${esc(e.id)}" data-f="status"${dis}>${Object.entries(STATUS).map(([k,v])=>`<option value="${k}"${(e.status||"todo")===k?" selected":""}>${v}</option>`).join("")}</select></label>
+          <label for="b-${esc(e.id)}">תקציב (₪)<input id="b-${esc(e.id)}" type="number" min="0" data-f="budget" value="${esc(e.budget??"")}"${dis}></label>
+        </div>
+        ${e.type==="party"?`<div class="slots">${slots.map((s,i)=>`<label for="sl-${esc(e.id)}-${i}">הורה ${i+1} לארוחה<input id="sl-${esc(e.id)}-${i}" data-slot="${i}" value="${esc(s)}" placeholder="שם ההורה ומה מביא"${dis}></label>`).join("")}</div>`:""}
+        <label for="n-${esc(e.id)}">הערות ורעיונות<textarea id="n-${esc(e.id)}" data-f="notes"${dis}>${esc(e.notes||"")}</textarea></label>
+        ${canWrite?`<div><button class="btn ghost" type="button" data-del-ev="${esc(e.id)}">מחיקת האירוע</button></div>`:""}
+      </div>`}).join("")
+      :`<div class="empty">עדיין אין אירועים. הוסיפו את הראשון בטופס למטה.</div>`;
+  }
+
+  /* settings fields */
+  [["#s-kids","kids"],["#s-per","perChild"],["#s-paybox","paybox"]].forEach(([sel,f])=>{const el=$(sel);if(document.activeElement!==el)el.value=S.settings[f]??"";el.disabled=!canWrite});
+  const pb=(S.settings.paybox||"").trim();
+  $("#paybox-link").innerHTML=/^https:\/\//.test(pb)?`<a href="${esc(pb)}" target="_blank" rel="noopener" class="btn small" style="text-decoration:none;display:inline-block">לתשלום בקבוצת PayBox</a>`:"";
+
+  /* kids */
+  $("#kids").innerHTML=S.kids.length?S.kids.map(k=>`<span style="display:inline-flex;align-items:center"><button type="button" class="kid${k.paid?" on":""}" data-kid="${esc(k.id)}" aria-pressed="${!!k.paid}"${dis}><span class="dot"></span>${esc(k.name)}</button>${canWrite?`<button class="x" type="button" title="הסרה" aria-label="הסרת ${esc(k.name)}" data-del-kid="${esc(k.id)}">×</button>`:""}</span>`).join("")
+    :`<div class="empty" style="width:100%">עוד לא הוזנו שמות ילדים. הוסיפו אותם כאן ולחצו על שם כשמגיע תשלום.</div>`;
+
+  /* expenses */
+  $("#exp-body").innerHTML=S.exp.length?S.exp.map(x=>`<tr><td>${esc(x.date||"")}</td><td>${esc(x.desc)}</td><td>${esc(x.buyer||"")}</td><td>${ils(x.amount)}</td>
+    <td><button type="button" class="btn ghost small ${x.reimbursed?"paid":"unpaid"}" data-reimb="${esc(x.id)}"${dis}>${x.reimbursed?"הוחזר ✓":"טרם הוחזר"}</button></td>
+    <td>${canWrite?`<button class="x" type="button" aria-label="מחיקה" data-del-exp="${esc(x.id)}">×</button>`:""}</td></tr>`).join("")
+    :`<tr><td colspan="6"><div class="empty">אין עדיין קניות רשומות</div></td></tr>`;
+
+  document.querySelectorAll("form button[type=submit]").forEach(b=>b.disabled=!canWrite);
+}
+render();
+
+/* writes */
+async function upd(path,data){if(!db)return;try{await db.doc(path).update(data);toast("נשמר")}catch(e){fail(e)}}
+$("#events-list").addEventListener("change",e=>{
+  const card=e.target.closest("[data-id]");if(!card)return;const id=card.dataset.id;
+  if(e.target.dataset.slot!==undefined){const slots=[...card.querySelectorAll("[data-slot]")].map(i=>i.value.trim());upd("events/"+id,{slots})}
+  else if(e.target.dataset.f){let v=e.target.value;if(e.target.dataset.f==="budget")v=v===""?null:+v;upd("events/"+id,{[e.target.dataset.f]:v})}
+});
+$("#events-list").addEventListener("focusout",()=>setTimeout(()=>{if(!$("#events-list").contains(document.activeElement))render()},50));
+const pending={};
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-del-ev],[data-kid],[data-del-kid],[data-reimb],[data-del-exp]");if(!t||!db||!canWrite)return;
+  try{
+    if(t.dataset.delEv){if(pending[t.dataset.delEv]){await db.doc("events/"+t.dataset.delEv).delete();toast("נמחק")}else{pending[t.dataset.delEv]=1;t.textContent="לחצו שוב לאישור המחיקה";setTimeout(()=>delete pending[t.dataset.delEv],4000)}}
+    else if(t.dataset.kid){const k=S.kids.find(k=>k.id===t.dataset.kid);await db.doc("kids/"+k.id).update({paid:!k.paid})}
+    else if(t.dataset.delKid){const k=S.kids.find(k=>k.id===t.dataset.delKid);if(pending["k"+k.id]){await db.doc("kids/"+k.id).delete()}else{pending["k"+k.id]=1;toast(`לחצו שוב על × כדי להסיר את ${k.name}`);setTimeout(()=>delete pending["k"+k.id],4000)}}
+    else if(t.dataset.reimb){const x=S.exp.find(x=>x.id===t.dataset.reimb);await db.doc("expenses/"+x.id).update({reimbursed:!x.reimbursed})}
+    else if(t.dataset.delExp){const id=t.dataset.delExp;if(pending["x"+id]){await db.doc("expenses/"+id).delete();toast("נמחק")}else{pending["x"+id]=1;toast("לחצו שוב על × כדי למחוק");setTimeout(()=>delete pending["x"+id],4000)}}
+  }catch(err){fail(err)}
+});
+[["#s-kids","kids",1],["#s-per","perChild",1],["#s-paybox","paybox",0]].forEach(([sel,f,num])=>$(sel).addEventListener("change",async e=>{
+  if(!db)return;const v=num?(+e.target.value||0):e.target.value.trim();
+  try{await db.doc("settings/main").set({...S.settings,[f]:v});toast("נשמר")}catch(err){fail(err)}}));
+$("#f-event").addEventListener("submit",async e=>{e.preventDefault();if(!db)return;
+  const type=$("#ev-type").value;
+  try{await db.collection("events").add({title:$("#ev-title").value.trim(),when:$("#ev-when").value.trim(),type,owner:type==="gift"?"דסי":"נילי",status:"todo",slots:type==="party"?["","",""]:[],notes:"",order:Date.now()});e.target.reset();toast("האירוע נוסף")}catch(err){fail(err)}});
+$("#f-kid").addEventListener("submit",async e=>{e.preventDefault();if(!db)return;
+  try{await db.collection("kids").add({name:$("#kid-name").value.trim(),paid:false});$("#kid-name").value="";$("#kid-name").focus()}catch(err){fail(err)}});
+$("#x-date").value=new Date().toISOString().slice(0,10);
+$("#f-exp").addEventListener("submit",async e=>{e.preventDefault();if(!db)return;
+  try{await db.collection("expenses").add({desc:$("#x-desc").value.trim(),amount:+$("#x-amt").value||0,buyer:$("#x-buyer").value.trim()||"ברכי",date:$("#x-date").value,reimbursed:false});
+    $("#x-desc").value="";$("#x-amt").value="";toast("הקנייה נרשמה")}catch(err){fail(err)}});
+
+/* connect: Firebase when configured, otherwise local demo mode */
+function localDb(){
+  const KEY="gan-dekel-demo", subs=[];
+  let data={};try{data=JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){}
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){};subs.forEach(f=>f())};
+  const id=()=>Math.random().toString(36).slice(2,12);
+  const snap=(i,d)=>({id:i,exists:!!d,data:()=>d});
+  const docRef=path=>{const [c,i]=path.split("/");return{
+    async set(v){(data[c]=data[c]||{})[i]={...v};save()},
+    async update(v){if(!data[c]||!data[c][i])throw{code:"invalid_argument"};Object.assign(data[c][i],v);save()},
+    async delete(){if(data[c])delete data[c][i];save()},
+    onSnapshot(fn){const f=()=>fn(snap(i,data[c]&&data[c][i]));subs.push(f);setTimeout(f);return()=>{}}}};
+  const coll=(c,ord)=>({
+    orderBy(f,dir){return coll(c,[f,dir])},
+    async add(v){const i=id();(data[c]=data[c]||{})[i]={...v};save();return docRef(c+"/"+i)},
+    onSnapshot(fn){const f=()=>{let docs=Object.entries(data[c]||{}).map(([i,d])=>snap(i,d));
+      if(ord){const[k,dir]=ord;docs.sort((a,b)=>(a.data()[k]>b.data()[k]?1:-1)*(dir==="desc"?-1:1))}fn({docs})};
+      subs.push(f);setTimeout(f);return()=>{}}});
+  return{doc:docRef,collection:c=>coll(c)};
+}
+function subscribe(){
+  const errH=e=>{console.error(e);$("#status").hidden=false;
+    $("#status").textContent=e&&e.code==="permission-denied"?"החשבון הזה לא ברשימת חברי הוועד. בקשו מהמנהל להוסיף אתכם.":"החיבור לנתונים נקטע. רעננו את הדף."};
+  db.doc("settings/main").onSnapshot(s=>{if(s.exists)S.settings={...S.settings,...s.data()};S.loaded.s=1;render()},errH);
+  db.collection("events").orderBy("order").onSnapshot(q=>{S.events=q.docs.map(d=>({id:d.id,...d.data()}));S.loaded.e=1;render()},errH);
+  db.collection("kids").orderBy("name").onSnapshot(q=>{S.kids=q.docs.map(d=>({id:d.id,...d.data()}));S.loaded.k=1;render()},errH);
+  db.collection("expenses").orderBy("date","desc").onSnapshot(q=>{S.exp=q.docs.map(d=>({id:d.id,...d.data()}));S.loaded.x=1;render()},errH);
+}
+const SEED={settings:{main:{kids:18,perChild:0,paybox:"",roles:[
+  {name:"דסי",area:"מתנות",items:["יום הולדת","חנוכה","ט״ו בשבט","יום המשפחה","פורים","סוף שנה"]},
+  {name:"נילי",area:"ארוחות במסיבות",items:["שיבוץ 3 הורים לכל מסיבה","לפי רשימת ההורים של ברכי"]},
+  {name:"ברכי",area:"רכש לגן",items:["קונה לגן ושולחת קבלה","הוועד מחזיר לה ב-PayBox"]}]}},
+  events:{
+  birthday:{title:"מתנת יום הולדת",when:"לאורך כל השנה",type:"gift",owner:"דסי",status:"todo",slots:[],notes:"רעיונות מהישיבה: בקבוק אישי, משחק עם התמונה של הילד",order:1},
+  hanukkah:{title:"חנוכה",when:"דצמבר 2026",type:"party",owner:"דסי (מתנה) · נילי (ארוחה)",status:"todo",slots:["","",""],notes:"",order:2},
+  tubishvat:{title:"ט״ו בשבט",when:"ינואר 2027",type:"gift",owner:"דסי",status:"todo",slots:[],notes:"",order:3},
+  familyday:{title:"יום המשפחה",when:"פברואר 2027",type:"gift",owner:"דסי",status:"todo",slots:[],notes:"",order:4},
+  purim:{title:"פורים",when:"מרץ 2027",type:"party",owner:"דסי (מתנה) · נילי (ארוחה)",status:"todo",slots:["","",""],notes:"",order:5},
+  endofyear:{title:"סוף שנה",when:"יוני 2027",type:"party",owner:"דסי (מתנה) · נילי (ארוחה)",status:"todo",slots:["","",""],notes:"",order:6}}};
+async function seedIfEmpty(){
+  const s=await db.doc("settings/main").get();if(s.exists)return;
+  for(const [c,docs] of Object.entries(SEED))for(const [i,d] of Object.entries(docs))await db.doc(c+"/"+i).set(d);
+}
+(async()=>{
+  const cfg=window.FIREBASE_CONFIG;
+  if(!cfg||!cfg.apiKey||typeof firebase==="undefined"){
+    db=localDb();
+    if(!(JSON.parse(localStorage.getItem("gan-dekel-demo")||"{}").settings)){for(const [c,docs] of Object.entries(SEED))for(const [i,d] of Object.entries(docs))await db.doc(c+"/"+i).set(d)}
+    $("#status").hidden=false;$("#status").textContent="מצב הדגמה: הנתונים נשמרים רק במכשיר הזה. כדי לשתף בין חברי הוועד צריך להגדיר Firebase (ראו README).";
+    subscribe();return;
+  }
+  firebase.initializeApp(cfg);
+  const auth=firebase.auth(), fs=firebase.firestore();
+  $("#signin").onclick=()=>auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>{
+    if(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment")auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());else toast("הכניסה נכשלה")});
+  $("#signout").onclick=()=>auth.signOut().then(()=>location.reload());
+  auth.onAuthStateChanged(async u=>{
+    if(!u){$("#status").hidden=true;$("#login").hidden=false;document.querySelectorAll("main section").forEach(x=>x.hidden=true);return}
+    $("#login").hidden=true;$("#signout").hidden=false;
+    showTab((()=>{try{return localStorage.getItem("dekel-tab")||"home"}catch(e){return"home"}})());
+    db=fs;
+    try{await seedIfEmpty()}catch(e){console.warn(e)}
+    subscribe();
+  });
+})();
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>

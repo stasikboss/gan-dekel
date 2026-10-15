@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // רק חברי הוועד. עדכנו את רשימת המיילים ופרסמו מחדש (Firestore → Rules → Publish).
+    function isCommittee() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in [
+          "stakimov@gmail.com"
+          // , "dasi@example.com", "nili@example.com", "brachi@example.com"
+        ];
+    }
+    match /{collection}/{docId} {
+      allow read, write: if isCommittee()
+        && collection in ["settings", "events", "kids", "expenses"];
+    }
+  }
+}
