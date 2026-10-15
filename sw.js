@@ -1,5 +1,5 @@
 // Offline shell: cache the app files; data always comes live from Firestore.
-const CACHE = "gan-dekel-v1";
+const CACHE = "gan-dekel-v2";
 const SHELL = ["./", "index.html", "firebase-config.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => {
