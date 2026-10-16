@@ -7,7 +7,8 @@ service cloud.firestore {
         && request.auth.token.email_verified == true
         && request.auth.token.email.lower() in [
           "stakimov@gmail.com",
-          "niliku26@gmail.com"
+          "niliku26@gmail.com",
+          "dasi.peretz@gmail.com"
         ];
     }
     match /{collection}/{docId} {
